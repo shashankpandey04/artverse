@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreArtworkRequest;
-use App\Http\Requests\UpdateArtworkRequest;
 use App\Models\Artwork;
 use App\Services\Moderation\ModerationService;
 use Illuminate\Http\Request;
@@ -35,11 +33,17 @@ class ArtworkController extends Controller
         return view('artworks.create');
     }
 
-    public function store(StoreArtworkRequest $request, ModerationService $moderation)
+    public function store(Request $request, ModerationService $moderation)
     {
         $this->authorize('create', Artwork::class);
 
-        $data = $request->validated();
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'required|image|max:5120',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+        ]);
 
         $path = $request->file('image')->store('artworks','public');
 
@@ -72,11 +76,16 @@ class ArtworkController extends Controller
         return view('artworks.edit', compact('artwork'));
     }
 
-    public function update(UpdateArtworkRequest $request, Artwork $artwork)
+    public function update(Request $request, Artwork $artwork)
     {
         $this->authorize('update', $artwork);
 
-        $data = $request->validated();
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+        ]);
 
         $artwork->update([
             'title' => $data['title'],

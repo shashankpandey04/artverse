@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ResetPasswordRequest;
+use App\Rules\StrongPassword;
+use App\Rules\ValidEmailAddress;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,12 +19,16 @@ class NewPasswordController extends Controller
         return view('auth.reset-password', ['request' => $request]);
     }
 
-    public function store(ResetPasswordRequest $request)
+    public function store(Request $request)
     {
-        $validated = $request->validated();
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', new ValidEmailAddress()],
+            'password' => ['required', 'confirmed', new StrongPassword()],
+        ]);
 
         $status = Password::reset(
-            array_merge($validated, ['password_confirmation' => $validated['password']]),
+            $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
                     'password' => Hash::make($password),

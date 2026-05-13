@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use App\Rules\AllowedUserRole;
+use App\Rules\StrongPassword;
+use App\Rules\ValidEmailAddress;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
@@ -17,9 +20,14 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(Request $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'max:255', new ValidEmailAddress(), 'unique:users,email'],
+            'role' => ['required', new AllowedUserRole()],
+            'password' => ['required', 'string', 'confirmed', new StrongPassword()],
+        ]);
 
         $user = User::create([
             'name' => $validated['name'],

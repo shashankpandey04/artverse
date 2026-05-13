@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AdminModerateRequest;
 use App\Models\Artwork;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -22,16 +21,11 @@ class AdminController extends Controller
         return view('admin.review', compact('art'));
     }
 
-    public function moderate(AdminModerateRequest $request, $id)
+    public function moderate(Request $request, $id)
     {
         $art = Artwork::findOrFail($id);
-        $data = $request->validated();
-
-        $art->update([
-            'moderation_status' => $data['moderation_status'],
-            'moderation_notes' => $data['notes'] ?? null,
-        ]);
-
+        $data = $request->validate(['moderation_status' => 'required|string', 'authenticity_label' => 'nullable|string']);
+        $art->update($data);
         return redirect()->route('admin.index')->with('success','Artwork moderation updated.');
     }
 }

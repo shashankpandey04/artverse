@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCommentRequest;
 use App\Models\Artwork;
 use App\Models\Comment;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
-    public function store(StoreCommentRequest $request, $artworkId)
+    public function store(Request $request, $artworkId)
     {
-        $data = $request->validated();
+        $request->validate(['comment' => 'required|string|max:1000']);
 
         Comment::create([
-            'artwork_id' => $data['artwork_id'],
+            'artwork_id' => $artworkId,
             'user_id' => Auth::id(),
-            'body' => $data['body'],
+            'comment' => $request->comment,
         ]);
 
         return back()->with('success','Comment posted.');

@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreRatingRequest;
 use App\Models\Artwork;
 use App\Models\Rating;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RatingController extends Controller
 {
-    public function store(StoreRatingRequest $request, $artworkId)
+    public function store(Request $request, $artworkId)
     {
-        $data = $request->validated();
+        $data = $request->validate(['rating' => 'required|integer|min:1|max:5']);
 
         Rating::updateOrCreate(
-            ['artwork_id' => $data['artwork_id'], 'user_id' => Auth::id()],
-            ['rating' => $data['score']]
+            ['artwork_id' => $artworkId, 'user_id' => Auth::id()],
+            ['rating' => $data['rating']]
         );
 
         return back()->with('success','Rating saved.');
